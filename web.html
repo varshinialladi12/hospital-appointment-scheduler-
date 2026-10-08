@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MedSched AI | Hospital Appointment Scheduler</title>
+
+<style>
+/* =========================
+   GLOBAL
+========================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bg: #07111f;
+    --card: #0d1b2e;
+    --card2: #10243b;
+    --border: rgba(255,255,255,0.08);
+    --text: #eef6ff;
+    --muted: #91a4bb;
+    --primary: #39d9ff;
+    --secondary: #7c5cff;
+    --green: #35e39b;
+    --yellow: #ffc857;
+    --red: #ff6174;
+    --shadow: 0 15px 45px rgba(0,0,0,.25);
+}
+
+body {
+    font-family: Inter, Arial, sans-serif;
+    background:
+        radial-gradient(circle at 10% 10%, rgba(57,217,255,.12), transparent 30%),
+        radial-gradient(circle at 90% 20%, rgba(124,92,255,.12), transparent 30%),
+        var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+/* =========================
+   NAVBAR
+========================= */
+
+.navbar {
+    height: 72px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(7,17,31,.88);
+    backdrop-filter: blur(15px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logoIcon {
+    width: 43px;
+    height: 43px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    font-size: 23px;
+    box-shadow: 0 8px 25px rgba(57,217,255,.2);
+}
+
+.logoText h2 {
+    font-size: 18px;
+}
+
+.logoText span {
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.liveStatus {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--green);
+    font-size: 13px;
+}
+
+.liveDot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 12px var(--green);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    50% { opacity: .3; }
+}
+
+/* =========================
+   LAYOUT
+========================= */
+
+.container {
+    max-width: 1450px;
+    margin: auto;
+    padding: 30px;
+}
+
+.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 25px;
+}
+
+.hero h1 {
+    font-size: clamp(28px, 4vw, 46px);
+    line-height: 1.05;
+    margin-bottom: 12px;
+}
+
+.gradientText {
+    background: linear-gradient(90deg, var(--primary), #fff, var(--secondary));
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.hero p {
+    max-width: 700px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.heroButtons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+button {
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-weight: 700;
+    transition: .2s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+}
+
+.btn {
+    padding: 12px 17px;
+    border-radius: 10px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+}
+
+.btnPrimary {
+    background: linear-gradient(135deg, var(--primary), #1685ff);
+    color: #00111e;
+}
+
+.btnPurple {
+    background: linear-gradient(135deg, var(--secondary), #b052ff);
+}
+
+.btnDanger {
+    background: rgba(255,97,116,.12);
+    color: #ff8c9a;
+}
+
+.btnSmall {
+    padding: 7px 10px;
+    border-radius: 7px;
+    font-size: 12px;
+}
+
+/* =========================
+   STAT CARDS
+========================= */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.stat {
+    background: linear-gradient(145deg, var(--card), rgba(16,36,59,.75));
+    border: 1px solid var(--border);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat::after {
+    content: "";
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    right: -25px;
+    top: -25px;
+    background: rgba(57,217,255,.06);
+}
+
+.statIcon {
+    font-size: 23px;
+    margin-bottom: 12px;
+}
+
+.stat h3 {
+    font-size: 28px;
+}
+
+.stat p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+/* =========================
+   GRID
+========================= */
+
+.mainGrid {
+    display: grid;
+    grid-template-columns: 1.4fr .8fr;
+    gap: 20px;
+}
+
+.card {
+    background: rgba(13,27,46,.9);
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.cardHeader h2 {
+    font-size: 17px;
+}
+
+.cardHeader span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* =========================
+   PATIENT TABLE
+========================= */
+
+.tableWrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+}
+
+th {
+    text-align: left;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 11px;
+    border-bottom: 1px solid var(--border);
+}
+
+td {
+    padding: 13px 11px;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    font-size: 13px;
+}
+
+tr:hover {
+    background: rgba(255,255,255,.025);
+}
+
+.patient {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: rgba(57,217,255,.12);
+}
+
+.priority {
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.high {
+    background: rgba(255,97,116,.14);
+    color: #ff8492;
+}
+
+.medium {
+    background: rgba(255,200,87,.14);
+    color: var(--yellow);
+}
+
+.low {
+    background: rgba(53,227,155,.14);
+    color: var(--green);
+}
+
+/* =========================
+   DOCTORS
+========================= */
+
+.doctorGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.doctor {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px;
+}
+
+.doctorTop {
+    display: flex;
+    justify-content: space-between;
+}
+
+.doctorName {
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.speciality {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.available {
+    color: var(--green);
+    font-size: 10px;
+}
+
+.busy {
+    color: var(--red);
+    font-size: 10px;
+}
+
+.progress {
+    height: 5px;
+    background: rgba(255,255,255,.07);
+    border-radius: 10px;
+    margin-top: 12px;
+    overflow: hidden;
+}
+
+.progress div {
+    height: 100%;
+    width: 65%;
+    background: linear-gradient(90deg,var(--primary),var(--secondary));
+}
+
+/* =========================
+   ALGORITHM PANEL
+========================= */
+
+.algorithm {
+    border: 1px solid var(--border);
+    background: linear-gradient(145deg,rgba(57,217,255,.06),rgba(124,92,255,.06));
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.algorithm h3 {
+    font-size: 14px;
+    margin-bottom: 7px;
+}
+
+.algorithm p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.algoFlow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 18px 0;
+    gap: 5px;
+}
+
+.flowBox {
+    padding: 10px;
+    border-radius: 9px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    font-size: 10px;
+    text-align: center;
+    flex: 1;
+}
+
+.arrow {
+    color: var(--primary);
+}
+
+/* =========================
+   EVENT LOG
+========================= */
+
+.eventLog {
+    max-height: 310px;
+    overflow-y: auto;
+}
+
+.event {
+    display: flex;
+    gap: 11px;
+    padding: 11px 0;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+}
+
+.eventIcon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    background: rgba(57,217,255,.1);
+    flex-shrink: 0;
+}
+
+.event strong {
+    display: block;
+    font-size: 12px;
+}
+
+.event small {
+    color: var(--muted);
+    font-size: 10px;
+}
+
+/* =========================
+   SCHEDULE
+========================= */
+
+.scheduleItem {
+    display: grid;
+    grid-template-columns: 65px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px;
+    border-radius: 11px;
+    margin-bottom: 9px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+}
+
+.time {
+    color: var(--primary);
+    font-weight: 800;
+    font-size: 12px;
+}
+
+.schedulePatient {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.scheduleDoctor {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 3px;
+}
+
+.status {
+    font-size: 9px;
+    padding: 5px 8px;
+    border-radius: 15px;
+    background: rgba(53,227,155,.1);
+    color: var(--green);
+}
+
+/* =========================
+   FORM
+========================= */
+
+.formGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.inputGroup label {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+input, select {
+    width: 100%;
+    padding: 11px;
+    border-radius: 9px;
+    background: #081727;
+    color: white;
+    border: 1px solid var(--border);
+    outline: none;
+}
+
+input:focus, select:focus {
+    border-color: var(--primary);
+}
+
+/* =========================
+   COMPARISON
+========================= */
+
+.compare {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 10px;
+}
+
+.compareBox {
+    padding: 15px;
+    border-radius: 12px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+}
+
+.compareBox h3 {
+    font-size: 12px;
+}
+
+.metric {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.metric b {
+    color: white;
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.7);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+    padding: 20px;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modalBox {
+    width: min(600px,100%);
+    background: #0b1b2d;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 25px;
+    box-shadow: 0 30px 100px rgba(0,0,0,.5);
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.close {
+    background: transparent;
+    font-size: 20px;
+}
+
+/* =========================
+   TOAST
+========================= */
+
+.toast {
+    position: fixed;
+    right: 25px;
+    bottom: 25px;
+    background: #102b40;
+    border: 1px solid rgba(57,217,255,.3);
+    padding: 14px 18px;
+    border-radius: 11px;
+    box-shadow: var(--shadow);
+    transform: translateY(120px);
+    opacity: 0;
+    transition: .3s;
+    z-index: 1000;
+    font-size: 12px;
+}
+
+.toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:1000px) {
+    .stats {
+        grid-template-columns: repeat(2,1fr);
+    }
+
+    .mainGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(max-width:650px) {
+    .navbar {
+        padding: 0 15px;
+    }
+
+    .container {
+        padding: 18px;
+    }
+
+    .hero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .stats {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .doctorGrid,
+    .formGrid,
+    .compare {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     NAVBAR
+========================= -->
+
+<nav class="navbar">
+
+    <div class="logo">
+        <div class="logoIcon">🏥</div>
+
+        <div class="logoText">
+            <h2>MedSched AI</h2>
+            <span>DAA Hospital Appointment Scheduler</span>
+        </div>
+    </div>
+
+    <div class="liveStatus">
+        <span class="liveDot"></span>
+        SYSTEM LIVE
+        <span id="clock">--:--:--</span>
+    </div>
+
+</nav>
+
+
+<main class="container">
+
+<!-- =========================
+     HERO
+========================= -->
+
+<section class="hero">
+
+    <div>
+        <h1>
+            Intelligent
+            <span class="gradientText">
+                Hospital Scheduling
+            </span>
+        </h1>
+
+        <p>
+            A DAA-powered appointment scheduler using
+            <b>Priority Queue, Greedy Scheduling and Sorting</b>
+            to assign patients to doctors efficiently while
+            considering urgency, availability and time slots.
+        </p>
+    </div>
+
+    <div class="heroButtons">
+
+        <button class="btn btnPrimary" onclick="runScheduler()">
+            ⚡ Run Scheduler
+        </button>
+
+        <button class="btn btnPurple" onclick="startSimulation()">
+            ▶ Live Simulation
+        </button>
+
+        <button class="btn" onclick="openModal()">
+            + Add Patient
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     STATISTICS
+========================= -->
+
+<section class="stats">
+
+    <div class="stat">
+        <div class="statIcon">👥</div>
+        <h3 id="patientCount">8</h3>
+        <p>Waiting Patients</p>
+    </div>
+
+    <div class="stat">
+        <div class="statIcon">🩺</div>
+        <h3 id="doctorCount">6</h3>
+        <p>Doctors Available</p>
+    </div>
+
+    <div class="stat">
+        <div class="statIcon">📅</div>
+        <h3 id="appointmentCount">0</h3>
+        <p>Appointments Scheduled</p>
+    </div>
+
+    <div class="stat">
+        <div class="statIcon">⚡</div>
+        <h3 id="efficiency">94%</h3>
+        <p>Scheduling Efficiency</p>
+    </div>
+
+</section>
+
+
+<div class="mainGrid">
+
+<!-- =========================
+     LEFT COLUMN
+========================= -->
+
+<div>
+
+    <!-- PATIENT QUEUE -->
+
+    <div class="card">
+
+        <div class="cardHeader">
+
+            <div>
+                <h2>👥 Patient Priority Queue</h2>
+                <span>Priority Queue + Sorting</span>
+            </div>
+
+            <select onchange="sortPatients(this.value)" style="width:170px">
+                <option value="priority">Priority ↓</option>
+                <option value="arrival">Arrival Time</option>
+                <option value="name">Patient Name</option>
+            </select>
+
+        </div>
+
+        <div class="tableWrap">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Patient</th>
+                        <th>Priority</th>
+                        <th>Department</th>
+                        <th>Arrival</th>
+                        <th>Action</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="patientTable"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- GENERATED SCHEDULE -->
+
+    <div class="card">
+
+        <div class="cardHeader">
+
+            <div>
+                <h2>📅 Today's Generated Schedule</h2>
+                <span>Greedy earliest-slot assignment</span>
+            </div>
+
+            <button class="btn btnSmall btnPrimary"
+                    onclick="runScheduler()">
+                Generate
+            </button>
+
+        </div>
+
+        <div id="schedule"></div>
+
+    </div>
+
+
+    <!-- ALGORITHM COMPARISON -->
+
+    <div class="card">
+
+        <div class="cardHeader">
+
+            <div>
+                <h2>📊 Algorithm Comparison</h2>
+                <span>Demonstrating DAA behavior</span>
+            </div>
+
+            <button class="btn btnSmall"
+                    onclick="runComparison()">
+                Compare
+            </button>
+
+        </div>
+
+        <div class="compare">
+
+            <div class="compareBox">
+
+                <h3>🟣 Priority Queue</h3>
+
+                <div class="metric">
+                    <span>Emergency Handling</span>
+                    <b>Excellent</b>
+                </div>
+
+                <div class="metric">
+                    <span>Complexity</span>
+                    <b>O(log n)</b>
+                </div>
+
+                <div class="metric">
+                    <span>Purpose</span>
+                    <b>Urgency</b>
+                </div>
+
+            </div>
+
+
+            <div class="compareBox">
+
+                <h3>🔵 Greedy</h3>
+
+                <div class="metric">
+                    <span>Slot Utilization</span>
+                    <b>High</b>
+                </div>
+
+                <div class="metric">
+                    <span>Complexity</span>
+                    <b>O(n log n)</b>
+                </div>
+
+                <div class="metric">
+                    <span>Purpose</span>
+                    <b>Earliest Slot</b>
+                </div>
+
+            </div>
+
+
+            <div class="compareBox">
+
+                <h3>🟢 Sorting</h3>
+
+                <div class="metric">
+                    <span>Organization</span>
+                    <b>High</b>
+                </div>
+
+                <div class="metric">
+                    <span>Complexity</span>
+                    <b>O(n log n)</b>
+                </div>
+
+                <div class="metric">
+                    <span>Purpose</span>
+                    <b>Ordering</b>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     RIGHT COLUMN
+========================= -->
+
+<div>
+
+    <!-- ALGORITHM VISUALIZATION -->
+
+    <div class="card">
+
+        <div class="cardHeader">
+
+            <div>
+                <h2>🧠 Algorithm Engine</h2>
+                <span id="algorithmStatus">Waiting for input...</span>
+            </div>
+
+        </div>
+
+
+        <div class="algoFlow">
+
+            <div class="flowBox">
+                👥<br>
+                Patients
+            </div>
+
+            <span class="arrow">→</span>
+
+            <div class="flowBox">
+                🟣<br>
+                Priority Queue
+            </div>
+
+            <span class="arrow">→</span>
+
+            <div class="flowBox">
+                ⚡<br>
+                Greedy
+            </div>
+
+            <span class="arrow">→</span>
+
+            <div class="flowBox">
+                📅<br>
+                Schedule
+            </div>
+
+        </div>
+
+
+        <div class="algorithm">
+
+            <h3>🟣 Priority Queue</h3>
+
+            <p>
+                Patients are repeatedly selected according
+                to priority. Emergency cases are processed
+                before normal and low-priority cases.
+            </p>
+
+        </div>
+
+
+        <div class="algorithm">
+
+            <h3>⚡ Greedy Scheduling</h3>
+
+            <p>
+                For each selected patient, the algorithm chooses
+                the earliest suitable available doctor/time slot.
+            </p>
+
+        </div>
+
+
+        <div class="algorithm">
+
+            <h3>🔃 Sorting</h3>
+
+            <p>
+                Patients and appointments can be organized by
+                priority, arrival time or scheduled time.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- DOCTORS -->
+
+    <div class="card">
+
+        <div class="cardHeader">
+
+            <div>
+                <h2>🩺 Doctor Availability</h2>
+                <span>Real-time simulation</span>
+            </div>
+
+        </div>
+
+        <div class="doctorGrid" id="doctorGrid"></div>
+
+    </div>
+
+
+    <!-- EVENT LOG -->
+
+    <div class="card">
+
+        <div class="cardHeader">
+
+            <div>
+                <h2>🔔 Live Event Stream</h2>
+                <span>Algorithm decisions</span>
+            </div>
+
+        </div>
+
+        <div class="eventLog" id="eventLog"></div>
+
+    </div>
+
+</div>
+
+</div>
+
+</main>
+
+
+<!-- =========================
+     ADD PATIENT MODAL
+========================= -->
+
+<div class="modal" id="patientModal">
+
+    <div class="modalBox">
+
+        <div class="modalHeader">
+
+            <h2>➕ Add Patient</h2>
+
+            <button class="close" onclick="closeModal()">✕</button>
+
+        </div>
+
+
+        <div class="formGrid">
+
+            <div class="inputGroup">
+
+                <label>Patient Name</label>
+
+                <input
+                    id="newName"
+                    placeholder="e.g. Rahul Sharma">
+
+            </div>
+
+
+            <div class="inputGroup">
+
+                <label>Department</label>
+
+                <select id="newDepartment">
+
+                    <option>Cardiology</option>
+                    <option>General Medicine</option>
+                    <option>Neurology</option>
+                    <option>Pediatrics</option>
+                    <option>Orthopedics</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="inputGroup">
+
+                <label>Priority</label>
+
+                <select id="newPriority">
+
+                    <option value="3">High / Emergency</option>
+                    <option value="2">Medium</option>
+                    <option value="1">Low</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="inputGroup">
+
+                <label>Arrival Time</label>
+
+                <input
+                    type="time"
+                    id="newArrival">
+
+            </div>
+
+        </div>
+
+        <br>
+
+        <button class="btn btnPrimary"
+                style="width:100%"
+                onclick="addPatient()">
+
+            Add Patient to Queue
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     TOAST
+========================= -->
+
+<div class="toast" id="toast"></div>
+
+
+<script>
+
+/* =====================================================
+   HOSPITAL APPOINTMENT SCHEDULER
+   DAA DEMONSTRATION
+===================================================== */
+
+
+/* =========================
+   PATIENT DATA
+========================= */
+
+let patients = [
+
+    {
+        id: 1,
+        name: "Aarav Mehta",
+        priority: 3,
+        department: "Cardiology",
+        arrival: "09:05"
+    },
+
+    {
+        id: 2,
+        name: "Priya Reddy",
+        priority: 2,
+        department: "General Medicine",
+        arrival: "09:12"
+    },
+
+    {
+        id: 3,
+        name: "Rahul Kumar",
+        priority: 1,
+        department: "Orthopedics",
+        arrival: "09:18"
+    },
+
+    {
+        id: 4,
+        name: "Sneha Rao",
+        priority: 3,
+        department: "Neurology",
+        arrival: "09:21"
+    },
+
+    {
+        id: 5,
+        name: "Arjun Singh",
+        priority: 2,
+        department: "Pediatrics",
+        arrival: "09:25"
+    },
+
+    {
+        id: 6,
+        name: "Diya Patel",
+        priority: 1,
+        department: "Cardiology",
+        arrival: "09:29"
+    },
+
+    {
+        id: 7,
+        name: "Kiran Das",
+        priority: 2,
+        department: "General Medicine",
+        arrival: "09:33"
+    },
+
+    {
+        id: 8,
+        name: "Meera Shah",
+        priority: 3,
+        department: "Orthopedics",
+        arrival: "09:37"
+    }
+
+];
+
+
+/* =========================
+   DOCTORS
+========================= */
+
+const doctors = [
+
+    {
+        name: "Dr. Ananya Rao",
+        department: "Cardiology",
+        available: true,
+        load: 40
+    },
+
+    {
+        name: "Dr. Vikram Singh",
+        department: "General Medicine",
+        available: true,
+        load: 55
+    },
+
+    {
+        name: "Dr. Neha Patel",
+        department: "Neurology",
+        available: true,
+        load: 30
+    },
+
+    {
+        name: "Dr. Arjun Reddy",
+        department: "Pediatrics",
+        available: false,
+        load: 80
+    },
+
+    {
+        name: "Dr. Kavya Sharma",
+        department: "Orthopedics",
+        available: true,
+        load: 45
+    },
+
+    {
+        name: "Dr. Rohit Das",
+        department: "General Medicine",
+        available: true,
+        load: 25
+    }
+
+];
+
+
+let schedule = [];
+
+let nextId = 9;
+
+
+/* =========================
+   PRIORITY LABEL
+========================= */
+
+function priorityLabel(priority) {
+
+    if (priority === 3) {
+
+        return `<span class="priority high">HIGH</span>`;
+
+    }
+
+    if (priority === 2) {
+
+        return `<span class="priority medium">MEDIUM</span>`;
+
+    }
+
+    return `<span class="priority low">LOW</span>`;
+
+}
+
+
+/* =========================
+   DISPLAY PATIENTS
+========================= */
+
+function renderPatients() {
+
+    const table = document.getElementById("patientTable");
+
+    table.innerHTML = "";
+
+    patients.forEach(patient => {
+
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+
+            <td>
+
+                <div class="patient">
+
+                    <div class="avatar">
+                        ${patient.name.charAt(0)}
+                    </div>
+
+                    <div>
+                        <b>${patient.name}</b>
+                    </div>
+
+                </div>
+
+            </td>
+
+            <td>
+                ${priorityLabel(patient.priority)}
+            </td>
+
+            <td>${patient.department}</td>
+
+            <td>${patient.arrival}</td>
+
+            <td>
+
+                <button
+                    class="btn btnSmall btnDanger"
+                    onclick="removePatient(${patient.id})">
+
+                    Remove
+
+                </button>
+
+            </td>
+
+        `;
+
+        table.appendChild(row);
+
+    });
+
+
+    document.getElementById("patientCount").innerText =
+        patients.length;
+
+}
+
+
+/* =========================
+   DOCTOR DISPLAY
+========================= */
+
+function renderDoctors() {
+
+    const container =
+        document.getElementById("doctorGrid");
+
+    container.innerHTML = "";
+
+    doctors.forEach((doctor, index) => {
+
+        container.innerHTML += `
+
+            <div class="doctor">
+
+                <div class="doctorTop">
+
+                    <div>
+
+                        <div class="doctorName">
+                            ${doctor.name}
+                        </div>
+
+                        <div class="speciality">
+                            ${doctor.department}
+                        </div>
+
+                    </div>
+
+                    <div class="${doctor.available
+                        ? "available"
+                        : "busy"}">
+
+                        ${doctor.available
+                            ? "● AVAILABLE"
+                            : "● BUSY"}
+
+                    </div>
+
+                </div>
+
+                <div class="progress">
+
+                    <div style="width:${doctor.load}%"></div>
+
+                </div>
+
+                <div style="
+                    font-size:10px;
+                    color:#91a4bb;
+                    margin-top:7px;">
+
+                    Current workload:
+                    ${doctor.load}%
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+}
+
+
+/* =========================
+   PRIORITY QUEUE
+========================= */
+
+/*
+    Higher priority value = higher urgency
+
+    3 = Emergency
+    2 = Medium
+    1 = Normal
+
+    Complexity:
+    Sorting based demonstration = O(n log n)
+*/
+
+function createPriorityQueue() {
+
+    return [...patients].sort((a,b) => {
+
+        if (b.priority !== a.priority) {
+
+            return b.priority - a.priority;
+
+        }
+
+        return a.arrival.localeCompare(b.arrival);
+
+    });
+
+}
+
+
+/* =========================
+   GREEDY SCHEDULER
+========================= */
+
+function runScheduler() {
+
+    if (patients.length === 0) {
+
+        showToast("No patients waiting.");
+
+        return;
+
+    }
+
+
+    schedule = [];
+
+    const queue = createPriorityQueue();
+
+    let usedDoctors = {};
+
+    doctors.forEach((doctor,index) => {
+
+        usedDoctors[index] = 0;
+
+    });
+
+
+    /*
+        Greedy idea:
+
+        1. Pick highest-priority patient.
+        2. Search for suitable available doctor.
+        3. Select doctor with lowest current load.
+        4. Assign earliest available slot.
+    */
+
+    queue.forEach((patient, index) => {
+
+        let suitable = doctors
+            .map((doctor, doctorIndex) => ({
+                doctor,
+                doctorIndex
+            }))
+            .filter(item =>
+                item.doctor.available &&
+                item.doctor.department === patient.department
+            );
+
+
+        /*
+            If exact department is unavailable,
+            choose another available doctor.
+        */
+
+        if (suitable.length === 0) {
+
+            suitable = doctors
+                .map((doctor, doctorIndex) => ({
+                    doctor,
+                    doctorIndex
+                }))
+                .filter(item => item.doctor.available);
+
+        }
+
+
+        if (suitable.length === 0) {
+
+            return;
+
+        }
+
+
+        /*
+            GREEDY CHOICE:
+            doctor with lowest current load
+        */
+
+        suitable.sort((a,b) =>
+            (a.doctor.load + usedDoctors[a.doctorIndex])
+            -
+            (b.doctor.load + usedDoctors[b.doctorIndex])
+        );
+
+
+        const selected = suitable[0];
+
+        const slotHour = 9 + index;
+
+        const hour = String(slotHour).padStart(2,"0");
+
+        const time = `${hour}:00`;
+
+
+        schedule.push({
+
+            patient: patient.name,
+
+            doctor: selected.doctor.name,
+
+            department: patient.department,
+
+            time: time,
+
+            priority: patient.priority
+
+        });
+
+
+        usedDoctors[selected.doctorIndex]++;
+
+
+        addEvent(
+
+            "⚡",
+
+            `Greedy assigned ${patient.name}`,
+
+            `${selected.doctor.name} → ${time}`
+
+        );
+
+    });
+
+
+    renderSchedule();
+
+    document.getElementById("appointmentCount").innerText =
+        schedule.length;
+
+    document.getElementById("algorithmStatus").innerText =
+        "Scheduling completed successfully";
+
+
+    showToast(
+        `${schedule.length} appointments generated using DAA algorithms`
+    );
+
+}
+
+
+/* =========================
+   RENDER SCHEDULE
+========================= */
+
+function renderSchedule() {
+
+    const container =
+        document.getElementById("schedule");
+
+    container.innerHTML = "";
+
+
+    if (schedule.length === 0) {
+
+        container.innerHTML = `
+            <p style="color:#91a4bb;font-size:13px">
+                Click "Generate" to create today's schedule.
+            </p>
+        `;
+
+        return;
+
+    }
+
+
+    schedule.forEach(item => {
+
+        container.innerHTML += `
+
+            <div class="scheduleItem">
+
+                <div class="time">
+                    ${item.time}
+                </div>
+
+                <div>
+
+                    <div class="schedulePatient">
+                        ${item.patient}
+                    </div>
+
+                    <div class="scheduleDoctor">
+                        ${item.doctor}
+                        •
+                        ${item.department}
+                    </div>
+
+                </div>
+
+                <div class="status">
+                    SCHEDULED
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+}
+
+
+/* =========================
+   SORT PATIENTS
+========================= */
+
+function sortPatients(type) {
+
+    if (type === "priority") {
+
+        patients.sort((a,b) =>
+            b.priority - a.priority
+        );
+
+    }
+
+
+    if (type === "arrival") {
+
+        patients.sort((a,b) =>
+            a.arrival.localeCompare(b.arrival)
+        );
+
+    }
+
+
+    if (type === "name") {
+
+        patients.sort((a,b) =>
+            a.name.localeCompare(b.name)
+        );
+
+    }
+
+
+    renderPatients();
+
+
+    addEvent(
+
+        "🔃",
+
+        "Patient queue sorted",
+
+        `Sorting method: ${type}`
+
+    );
+
+}
+
+
+/* =========================
+   ADD PATIENT
+========================= */
+
+function addPatient() {
+
+    const name =
+        document.getElementById("newName").value.trim();
+
+    const department =
+        document.getElementById("newDepartment").value;
+
+    const priority =
+        Number(document.getElementById("newPriority").value);
+
+    let arrival =
+        document.getElementById("newArrival").value;
+
+
+    if (!name) {
+
+        showToast("Please enter patient name.");
+
+        return;
+
+    }
+
+
+    if (!arrival) {
+
+        const now = new Date();
+
+        arrival =
+            now.getHours().toString().padStart(2,"0")
+            + ":" +
+            now.getMinutes().toString().padStart(2,"0");
+
+    }
+
+
+    patients.push({
+
+        id: nextId++,
+
+        name,
+
+        priority,
+
+        department,
+
+        arrival
+
+    });
+
+
+    renderPatients();
+
+    closeModal();
+
+
+    addEvent(
+
+        "👤",
+
+        `${name} added to queue`,
+
+        `Priority: ${priority === 3
+            ? "High"
+            : priority === 2
+                ? "Medium"
+                : "Low"}`
+
+    );
+
+
+    showToast(`${name} added successfully.`);
+
+
+    document.getElementById("newName").value = "";
+
+}
+
+
+/* =========================
+   REMOVE PATIENT
+========================= */
+
+function removePatient(id) {
+
+    const patient =
+        patients.find(p => p.id === id);
+
+
+    patients =
+        patients.filter(p => p.id !== id);
+
+
+    renderPatients();
+
+
+    addEvent(
+
+        "🗑️",
+
+        `${patient.name} removed`,
+
+        "Queue updated"
+
+    );
+
+
+    showToast("Patient removed.");
+
+}
+
+
+/* =========================
+   EVENT SYSTEM
+========================= */
+
+function addEvent(icon, title, description) {
+
+    const log =
+        document.getElementById("eventLog");
+
+    const event =
+        document.createElement("div");
+
+    event.className = "event";
+
+
+    const time =
+        new Date().toLocaleTimeString();
+
+
+    event.innerHTML = `
+
+        <div class="eventIcon">
+            ${icon}
+        </div>
+
+        <div>
+
+            <strong>${title}</strong>
+
+            <small>
+                ${description} • ${time}
+            </small>
+
+        </div>
+
+    `;
+
+
+    log.prepend(event);
+
+
+    /*
+        Keep only latest 20 events
+    */
+
+    while (log.children.length > 20) {
+
+        log.removeChild(log.lastChild);
+
+    }
+
+}
+
+
+/* =========================
+   LIVE SIMULATION
+========================= */
+
+function startSimulation() {
+
+    if (patients.length === 0) {
+
+        showToast("No patients available.");
+
+        return;
+
+    }
+
+
+    schedule = [];
+
+    renderSchedule();
+
+
+    addEvent(
+
+        "▶️",
+
+        "Live scheduling simulation started",
+
+        "Priority Queue initialized"
+
+    );
+
+
+    document.getElementById("algorithmStatus").innerText =
+        "Running Priority Queue...";
+
+
+    const queue =
+        createPriorityQueue();
+
+
+    let i = 0;
+
+
+    const interval =
+        setInterval(() => {
+
+            if (i >= queue.length) {
+
+                clearInterval(interval);
+
+
+                setTimeout(() => {
+
+                    runScheduler();
+
+                }, 500);
+
+
+                return;
+
+            }
+
+
+            const patient = queue[i];
+
+
+            addEvent(
+
+                "🟣",
+
+                `Priority Queue selected ${patient.name}`,
+
+                `Priority level: ${patient.priority}`
+
+            );
+
+
+            document.getElementById("algorithmStatus").innerText =
+
+                `Processing ${patient.name}...`;
+
+
+            i++;
+
+        }, 800);
+
+}
+
+
+/* =========================
+   ALGORITHM COMPARISON
+========================= */
+
+function runComparison() {
+
+    const startPriority =
+        performance.now();
+
+    createPriorityQueue();
+
+    const priorityTime =
+        (performance.now() - startPriority).toFixed(3);
+
+
+    const startSort =
+        performance.now();
+
+    [...patients].sort((a,b) =>
+        b.priority - a.priority
+    );
+
+    const sortTime =
+        (performance.now() - startSort).toFixed(3);
+
+
+    const startGreedy =
+        performance.now();
+
+    runScheduler();
+
+    const greedyTime =
+        (performance.now() - startGreedy).toFixed(3);
+
+
+    addEvent(
+
+        "📊",
+
+        "Algorithm comparison completed",
+
+        `Priority Queue: ${priorityTime}ms | Sorting: ${sortTime}ms | Greedy: ${greedyTime}ms`
+
+    );
+
+
+    showToast(
+        "Algorithm comparison completed."
+    );
+
+}
+
+
+/* =========================
+   MODAL
+========================= */
+
+function openModal() {
+
+    document
+        .getElementById("patientModal")
+        .classList.add("active");
+
+}
+
+
+function closeModal() {
+
+    document
+        .getElementById("patientModal")
+        .classList.remove("active");
+
+}
+
+
+/* =========================
+   TOAST
+========================= */
+
+function showToast(message) {
+
+    const toast =
+        document.getElementById("toast");
+
+    toast.innerText = message;
+
+    toast.classList.add("show");
+
+
+    setTimeout(() => {
+
+        toast.classList.remove("show");
+
+    }, 2800);
+
+}
+
+
+/* =========================
+   LIVE CLOCK
+========================= */
+
+function updateClock() {
+
+    const now = new Date();
+
+    document.getElementById("clock")
+        .innerText =
+        now.toLocaleTimeString();
+
+}
+
+
+setInterval(updateClock,1000);
+
+updateClock();
+
+
+/* =========================
+   SIMULATED REAL-TIME EVENTS
+========================= */
+
+const liveEvents = [
+
+    [
+        "🩺",
+        "Doctor availability updated",
+        "Dr. Neha Patel is now available"
+    ],
+
+    [
+        "📋",
+        "Patient records synchronized",
+        "Hospital database updated"
+    ],
+
+    [
+        "⏱️",
+        "Appointment slot opened",
+        "Neurology • 14:00"
+    ],
+
+    [
+        "🔔",
+        "Priority alert received",
+        "Emergency patient added"
+    ],
+
+    [
+        "🔐",
+        "System health check",
+        "All scheduling services operational"
+    ]
+
+];
+
+
+let liveIndex = 0;
+
+
+setInterval(() => {
+
+    const event =
+        liveEvents[liveIndex];
+
+    addEvent(
+        event[0],
+        event[1],
+        event[2]
+    );
+
+
+    liveIndex =
+        (liveIndex + 1) %
+        liveEvents.length;
+
+
+}, 6500);
+
+
+/* =========================
+   INITIALIZATION
+========================= */
+
+renderPatients();
+
+renderDoctors();
+
+renderSchedule();
+
+
+addEvent(
+
+    "🚀",
+
+    "MedSched AI initialized",
+
+    "Hospital scheduling engine is ready"
+
+);
+
+
+addEvent(
+
+    "🟣",
+
+    "Priority Queue initialized",
+
+    `${patients.length} patients loaded`
+
+);
+
+
+addEvent(
+
+    "🩺",
+
+    "Doctor database connected",
+
+    `${doctors.length} doctors detected`
+
+);
+
+</script>
+
+</body>
+</html>
